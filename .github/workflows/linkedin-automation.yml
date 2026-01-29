@@ -1,0 +1,224 @@
+# LinkedIn Automation GitHub Actions Workflow
+
+name: LinkedIn Automation CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run daily at 9 AM CET (8 AM UTC) to test automation
+    - cron: "0 8 * * *"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.9, 3.10, 3.11]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            fonts-liberation \
+            libasound2 \
+            libatk-bridge2.0-0 \
+            libatk1.0-0 \
+            libatspi2.0-0 \
+            libcups2 \
+            libdrm2 \
+            libgbm1 \
+            libgtk-3-0 \
+            libnspr4 \
+            libnss3 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxfixes3 \
+            libxrandr2 \
+            libxss1
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: |
+          python -m playwright install chromium
+
+      - name: Run linting
+        run: |
+          pip install ruff
+          ruff check src/
+
+      - name: Run tests
+        run: |
+          python -m pytest tests/ -v
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          LI_COOKIES: ${{ secrets.LI_COOKIES }}
+
+      - name: Test workflow validation
+        run: |
+          cd src/automation
+          python -c "
+          import asyncio
+          from workflow import LinkedInAutomationWorkflow
+          async def test():
+              workflow = LinkedInAutomationWorkflow()
+              validation = await workflow.validate_setup()
+              print(f'Validation: {validation}')
+              assert validation['overall_valid'], 'Setup validation failed'
+          asyncio.run(test())
+          "
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install chromium
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deployment
+          cp -r src deployment/
+          cp requirements.txt deployment/
+          cp README.md deployment/
+          cp LICENSE deployment/
+
+          # Create deployment script
+          cat > deployment/deploy.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          echo "LinkedIn Automation Deployment"
+          echo "=============================="
+
+          # Check Python version
+          python_version=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1,2)
+          echo "Python version: $python_version"
+
+          # Install dependencies
+          echo "Installing dependencies..."
+          pip3 install -r requirements.txt
+
+          # Install Playwright browsers
+          echo "Installing Playwright browsers..."
+          python3 -m playwright install chromium
+
+          # Validate setup
+          echo "Validating setup..."
+          cd src/automation
+          python3 -c "
+          import asyncio
+          from workflow import LinkedInAutomationWorkflow
+          async def validate():
+              workflow = LinkedInAutomationWorkflow()
+              validation = await workflow.validate_setup()
+              print(f'Setup validation: {validation}')
+              if not validation['overall_valid']:
+                  print('ERROR: Setup validation failed')
+                  exit(1)
+              print('SUCCESS: All components validated')
+          asyncio.run(validate())
+          "
+
+          echo "Deployment completed successfully!"
+          EOF
+          chmod +x deployment/deploy.sh
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v3
+        with:
+          name: linkedin-automation-deployment
+          path: deployment/
+          retention-days: 30
+
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run security scan
+        run: |
+          pip install bandit
+          bandit -r src/ -f json -o security-report.json
+          bandit -r src/ -f txt
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.json
+
+  performance-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python -m playwright install chromium
+
+      - name: Run performance tests
+        run: |
+          cd src/automation
+          python -c "
+          import asyncio
+          import time
+          from workflow import LinkedInAutomationWorkflow
+
+          async def performance_test():
+              workflow = LinkedInAutomationWorkflow()
+              
+              # Test single request performance
+              start_time = time.time()
+              result = await workflow.run_single_request({
+                  'linkedin_url': 'https://www.linkedin.com/in/test-profile-123'
+              })
+              single_request_time = time.time() - start_time
+              
+              print(f'Single request time: {single_request_time:.2f}s')
+              print(f'Result: {result}')
+              
+              # Validate performance
+              if single_request_time > 120:  # 2 minutes
+                  print('WARNING: Single request took longer than expected')
+              
+          asyncio.run(performance_test())
+          "
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}

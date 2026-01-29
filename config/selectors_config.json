@@ -1,0 +1,131 @@
+{
+  "primary_selectors": {
+    "connect_button": [
+      "button:has-text(\"Connect\")",
+      "button[data-test-id=\"connect-button\"]",
+      "button[aria-label*=\"Connect\"]",
+      "button[data-control-name=\"connect\"]"
+    ],
+    "message_input": [
+      "textarea[placeholder*=\"Add a note\"]",
+      "textarea[aria-label*=\"message\"]",
+      "input[role=\"textbox\"]",
+      "div[contenteditable=\"true\"]"
+    ],
+    "send_button": [
+      "button:has-text(\"Send\")",
+      "button[data-test-id=\"send-button\"]",
+      "button[aria-label*=\"Send\"]"
+    ],
+    "profile_name": [
+      "h1[data-test-id=\"profile-name\"]",
+      "h2[data-test-id=\"profile-name\"]",
+      "[data-test-id=\"profile-name\"]",
+      "span[data-test-id=\"profile-name\"]"
+    ],
+    "job_title": [
+      "[data-test-id=\"job-title\"]",
+      "[data-field=\"job-title\"]",
+      "[data-test-id=\"headline\"]"
+    ],
+    "company": [
+      "[data-test-id=\"company-name\"]",
+      "[data-field=\"company\"]",
+      "[data-test-id=\"company\"]"
+    ],
+    "profile_info": [
+      "div[data-test-id=\"profile-info\"]",
+      "section[data-test-id=\"profile-section\"]",
+      "div[class*=\"profile-info\"]"
+    ]
+  },
+  "secondary_selectors": {
+    "connect_button": [
+      "button[data-test-id*=\"connect\"]",
+      "button[aria-label*=\"connect\"]",
+      "button[data-control-name*=\"connect\"]",
+      "button[data-action=\"connect\"]"
+    ],
+    "message_input": [
+      "textarea[placeholder*=\"note\"]",
+      "textarea[placeholder*=\"message\"]",
+      "input[aria-label*=\"message\"]",
+      "div[role=\"textbox\"]"
+    ],
+    "send_button": [
+      "button[data-test-id*=\"send\"]",
+      "button[aria-label*=\"send\"]",
+      "button[data-action=\"send\"]"
+    ],
+    "profile_name": [
+      "h1 span",
+      "h2 span",
+      "h1",
+      "h2"
+    ],
+    "job_title": [
+      "h2:has-text(\" at \")",
+      "h3:has-text(\" at \")",
+      "span:has-text(\" at \")",
+      "div:has-text(\" at \")"
+    ],
+    "company": [
+      "span:has-text(\" at \")",
+      "div:has-text(\" at \")",
+      "a:has-text(\" at \")"
+    ]
+  },
+  "xpath_selectors": {
+    "connect_button": [
+      "//button[contains(text(), \"Connect\")]",
+      "//button[contains(@data-control-name, \"connect\")]",
+      "//button[contains(@aria-label, \"Connect\")]",
+      "//button[contains(@data-test-id, \"connect\")]"
+    ],
+    "message_input": [
+      "//textarea[contains(@placeholder, \"Add a note\")]",
+      "//textarea[contains(@aria-label, \"message\")]",
+      "//input[@role=\"textbox\"]",
+      "//div[@contenteditable=\"true\"]"
+    ],
+    "send_button": [
+      "//button[contains(text(), \"Send\")]",
+      "//button[contains(@data-test-id, \"send\")]",
+      "//button[contains(@aria-label, \"Send\")]"
+    ],
+    "profile_name": [
+      "//h1[contains(@data-test-id, \"profile-name\")]",
+      "//h2[contains(@data-test-id, \"profile-name\")]",
+      "//*[contains(@data-test-id, \"profile-name\")]"
+    ],
+    "job_title": [
+      "//*[contains(@data-test-id, \"job-title\")]",
+      "//*[contains(@data-field, \"job-title\")]",
+      "//*[contains(@data-test-id, \"headline\")]"
+    ],
+    "company": [
+      "//*[contains(@data-test-id, \"company-name\")]",
+      "//*[contains(@data-field, \"company\")]",
+      "//*[contains(@data-test-id, \"company\")]"
+    ]
+  },
+  "context_patterns": {
+    "job_title_with_company": [
+      " at ",
+      " at ",
+      " - ",
+      " • "
+    ],
+    "profile_sections": [
+      "About",
+      "Experience",
+      "Education",
+      "Skills"
+    ]
+  },
+  "retry_config": {
+    "max_retries": 3,
+    "base_delay": 1000,
+    "backoff_factor": 2
+  }
+}

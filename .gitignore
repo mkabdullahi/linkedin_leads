@@ -1,0 +1,57 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Cookies and sensitive data
+config/linkedin_cookies.json
+
+
+# Logs
+logs/
+*.log
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+__init__.py
+
+# Data files3Q          `````   
+data/
+results/
+output/
+
+# Dependencies
+node_modules/
+venv/
+env/
+.venv/
+.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Deployment
+deployment/
+dist/
+build/
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+cookies.json

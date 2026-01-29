@@ -1,0 +1,47 @@
+[
+  {
+    "name": "John Doe",
+    "linkedin_url": "https://www.linkedin.com/in/johndoe",
+    "job_title": "Software Engineer",
+    "company": "Tech Corp",
+    "industry": "Technology",
+    "location": "San Francisco, CA",
+    "priority": "high"
+  },
+  {
+    "name": "Jane Smith",
+    "linkedin_url": "https://www.linkedin.com/in/janesmith",
+    "job_title": "Product Manager",
+    "company": "Innovation Inc",
+    "industry": "Technology",
+    "location": "New York, NY",
+    "priority": "medium"
+  },
+  {
+    "name": "Bob Johnson",
+    "linkedin_url": "https://www.linkedin.com/in/bobjohnson",
+    "job_title": "Marketing Director",
+    "company": "Creative Agency",
+    "industry": "Marketing",
+    "location": "Los Angeles, CA",
+    "priority": "low"
+  },
+  {
+    "name": "Alice Brown",
+    "linkedin_url": "https://www.linkedin.com/in/alicebrown",
+    "job_title": "Data Scientist",
+    "company": "Analytics Co",
+    "industry": "Data Science",
+    "location": "Seattle, WA",
+    "priority": "high"
+  },
+  {
+    "name": "Charlie Wilson",
+    "linkedin_url": "https://www.linkedin.com/in/charliewilson",
+    "job_title": "UX Designer",
+    "company": "Design Studio",
+    "industry": "Design",
+    "location": "Austin, TX",
+    "priority": "medium"
+  }
+]

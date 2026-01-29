@@ -1,0 +1,14 @@
+{
+  "li_at": "your_li_at_cookie_value_here",
+  "JSESSIONID": "your_jsessionid_cookie_value_here",
+  "bscookie": "your_bscookie_value_here",
+  "comment": "Extract these cookies from your browser's developer tools",
+  "instructions": [
+    "1. Log into LinkedIn in your browser",
+    "2. Open Developer Tools (F12)",
+    "3. Go to Application/Storage → Cookies → https://www.linkedin.com",
+    "4. Copy the values for li_at, JSESSIONID, and bscookie",
+    "5. Replace the placeholder values above with your actual cookie values",
+    "6. Save as config/linkedin_cookies.json (this file will be ignored by git)"
+  ]
+}

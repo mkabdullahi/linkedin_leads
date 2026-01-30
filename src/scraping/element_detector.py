@@ -29,7 +29,7 @@ class ElementDetector:
     
     def _load_selectors_config(self) -> Dict[str, Any]:
         """Load selectors configuration from JSON file."""
-        config_path = Path(__file__).parent.parent / "config" / "selectors_config.json"
+        config_path = Path(__file__).parent.parent.parent / "config" / "selectors_config.json"
         try:
             with open(config_path, 'r') as f:
                 return json.load(f)
@@ -271,12 +271,12 @@ class ElementDetector:
         if text == 'Connect':
             # Look for buttons near profile header
             try:
-                profile_header = await self.page.locator('h1, h2').first
+                profile_header =  self.page.locator('h1, h2').first
                 if await profile_header.is_visible():
                     # Look for buttons in the same container
-                    container = await profile_header.evaluate_handle('el => el.closest("div, section")')
+                    container = await profile_header.evaluate('el => el.closest("div, section")')
                     if container:
-                        buttons = await container.locator('button').all()
+                        buttons = await self.page.locator('button').all()
                         for button in buttons:
                             button_text = await button.inner_text()
                             if 'Connect' in button_text:

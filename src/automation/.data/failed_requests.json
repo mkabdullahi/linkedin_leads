@@ -1,0 +1,20 @@
+[
+  {
+    "success": false,
+    "profile_url": "https://www.linkedin.com/in/example1/",
+    "message_sent": "",
+    "error": "Timeout 30000ms exceeded.",
+    "retry_count": 0,
+    "time_taken": 0,
+    "timestamp": 1769778369.1241338
+  },
+  {
+    "success": false,
+    "profile_url": "https://www.linkedin.com/in/example2/",
+    "message_sent": "",
+    "error": "Timeout 30000ms exceeded.",
+    "retry_count": 0,
+    "time_taken": 0,
+    "timestamp": 1769778369.127331
+  }
+]

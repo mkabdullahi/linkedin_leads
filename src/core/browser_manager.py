@@ -25,7 +25,7 @@ class BrowserManager:
     def __init__(self):
         self.playwright = None
         self.browser = None
-        self.context = None
+        self.context: Optional[BrowserContext] = None
         self._user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -66,6 +66,9 @@ class BrowserManager:
     
     async def _launch_browser(self) -> Browser:
         """Launch browser with anti-detection configuration."""
+        await self.initialize()
+        # Add an assertion to help Pylance understand playwright is not None
+        assert self.playwright is not None, "Playwright must be initialized"
         return await self.playwright.firefox.launch(
             headless=config.app.browser.headless,
             slow_mo=config.app.browser.slow_mo,

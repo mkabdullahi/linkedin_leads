@@ -1,0 +1,89 @@
+{
+  "locations": [
+    "United States",
+    "Germany", 
+    "United Kingdom",
+    "Belgium"
+  ],
+  "job_titles": [
+    "Hiring Manager",
+    "Talent Acquisition",
+    "Recruiter",
+    "HR Manager",
+    "Talent Manager",
+    "People Manager",
+    "Talent Acquisition Manager",
+    "Recruitment Manager",
+    "Human Resources Manager",
+    "People Operations Manager",
+    "Talent Partner",
+    "HR Business Partner",
+    "Head of Talent",
+    "Director of Talent",
+    "VP of Talent",
+    "Chief Human Resources Officer",
+    "HR Director",
+    "People Director"
+  ],
+  "search_filters": {
+    "current_company": true,
+    "profile_language": ["English", "German", "French", "Dutch"],
+    "connection_level": "1st",
+    "profile_completeness": "high"
+  },
+  "search_strategies": {
+    "job_title_search": {
+      "enabled": true,
+      "pattern": "title:{job_title} AND location:{location}",
+      "max_results_per_search": 50
+    },
+    "keyword_search": {
+      "enabled": true,
+      "pattern": "keywords:{job_title} AND location:{location}",
+      "max_results_per_search": 50
+    },
+    "company_search": {
+      "enabled": true,
+      "pattern": "keywords:{job_title} AND company:{company}",
+      "max_results_per_search": 30
+    }
+  },
+  "companies": [
+    "Google",
+    "Microsoft",
+    "Amazon",
+    "Apple",
+    "Meta",
+    "Netflix",
+    "Salesforce",
+    "Adobe",
+    "IBM",
+    "Oracle",
+    "SAP",
+    "Siemens",
+    "Bosch",
+    "BMW",
+    "Volkswagen",
+    "Daimler",
+    "Allianz",
+    "Deutsche Bank",
+    "Commerzbank",
+    "BNP Paribas",
+    "ING",
+    "KBC",
+    "Belfius"
+  ],
+  "prospect_validation": {
+    "min_connections": 50,
+    "min_experience_years": 2,
+    "require_profile_photo": true,
+    "require_current_company": true,
+    "max_duplicates": 5
+  },
+  "rate_limiting": {
+    "delay_between_searches": 30,
+    "delay_between_profiles": 5,
+    "max_searches_per_session": 10,
+    "max_profiles_per_search": 50
+  }
+}

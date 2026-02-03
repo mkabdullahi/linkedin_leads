@@ -8,6 +8,7 @@ prospects based on job titles, locations, and companies.
 import asyncio
 import random
 import re
+import urllib.parse
 from typing import List, Dict, Any, Optional, Tuple
 from playwright.async_api import Page, Locator
 
@@ -23,7 +24,49 @@ class SearchStrategies:
         self.page = page
         self.config = config
         self.search_strategies = config.get('search_strategies', {})
+
+        self.result_selectors = [
+            ".reusable-search__result-container",
+            ".search-results-container",
+            "li.reusable-search__result-container",
+            "[data-test-search-result]"
+        ]
     
+    async def _wait_for_results(self, job_title: str, location: str, timeout: int = 15000) -> bool:
+        """
+        Wait for the search results to appear on the page with multi-selector fallback.
+        """
+        try:
+            # Try to wait for any of the known result container selectors
+            found_selector = None
+            for selector in self.result_selectors:
+                try:
+                    # Short timeout for individual selector checks
+                    await self.page.wait_for_selector(selector, timeout=5000, state="visible")
+                    found_selector = selector
+                    break
+                except TimeoutError:
+                    continue
+
+            if not found_selector:
+                # Check for "No results found" message to distinguish between error and empty search
+                no_results_text = await self.page.get_by_text("No results found").is_visible()
+                if no_results_text:
+                    logger.info(f"No results found for '{job_title}' in '{location}'.")
+                    return True
+                
+                # If neither results nor the "no results" message appear, it's a loading failure
+                logger.warning(f"Search results not loaded properly for {job_title} in {location}")
+                return False
+
+            # Add a small human-like random delay once found
+            await asyncio.sleep(random.uniform(1.5, 3.0))
+            return True
+
+        except Exception as e:
+            logger.error(f"Error during result validation: {str(e)}")
+            return False
+
     async def search_by_job_title_and_location(self, job_title: str, location: str) -> List[Dict[str, str]]:
         """Search for profiles using job title and location filters."""
         if not self.search_strategies.get('job_title_search', {}).get('enabled', True):
@@ -36,7 +79,7 @@ class SearchStrategies:
             await self._simulate_human_behavior("before_search")
             
             # Navigate to LinkedIn search with retry logic
-            search_url = self._build_job_title_search_url(job_title, location)
+            search_url = await self._build_job_title_search_url(job_title, location)
             await self._navigate_with_retry(search_url)
             
             # Validate search results loaded
@@ -53,7 +96,37 @@ class SearchStrategies:
         except Exception as e:
             logger.error(f"Job title search failed for {job_title} in {location}: {e}")
             return []
-    
+    """
+    async def search_by_job_title_and_location(self, job_title: str, location: str) -> List[Dict[str, str]]:
+        Search for profiles using job title and location filters."
+        if not self.search_strategies.get('job_title_search', {}).get('enabled', True):
+            return []
+        
+        logger.info(f"Searching for {job_title} in {location}")
+        
+        try:
+            # Pre-search human behavior simulation
+            await self._simulate_human_behavior("before_search")
+            
+            # Navigate to LinkedIn search with retry logic
+            search_url = await self._build_job_title_search_url(job_title, location)
+            await self._navigate_with_retry(search_url)
+            
+            # Validate search results loaded
+            if not await self._validate_search_results():
+                logger.warning(f"Search results not loaded properly for {job_title} in {location}")
+                return []
+            
+            # Extract profiles from search results
+            profiles = await self._extract_profiles_from_search_results()
+            
+            logger.info(f"Found {len(profiles)} profiles for {job_title} in {location}")
+            return profiles
+            
+        except Exception as e:
+            logger.error(f"Job title search failed for {job_title} in {location}: {e}")
+            return []
+    """    
     async def search_by_keyword_and_location(self, keyword: str, location: str) -> List[Dict[str, str]]:
         """Search for profiles using keyword and location filters."""
         if not self.search_strategies.get('keyword_search', {}).get('enabled', True):
@@ -66,7 +139,7 @@ class SearchStrategies:
             await self._simulate_human_behavior("before_search")
             
             # Navigate to LinkedIn search with retry logic
-            search_url = self._build_keyword_search_url(keyword, location)
+            search_url = await self._build_keyword_search_url(keyword, location)
             await self._navigate_with_retry(search_url)
             
             # Validate search results loaded
@@ -96,7 +169,7 @@ class SearchStrategies:
             await self._simulate_human_behavior("before_search")
             
             # Navigate to LinkedIn search with retry logic
-            search_url = self._build_company_search_url(company, job_title)
+            search_url = await self._build_company_search_url(company, job_title)
             await self._navigate_with_retry(search_url)
             
             # Validate search results loaded
@@ -114,41 +187,41 @@ class SearchStrategies:
             logger.error(f"Company search failed for {job_title} at {company}: {e}")
             return []
     
-    def _build_job_title_search_url(self, job_title: str, location: str) -> str:
+    async def _generate_url(self, params: Dict[str, str]) -> str:
+        """
+        Internal helper to construct a robust LinkedIn search URL asynchronously.
+        Uses standard urllib.parse to handle special characters correctly 
+        and removes session-specific 'sid' parameters to prevent timeouts.
+        """
+        # We use 'GLOBAL_SEARCH_CARD' as the origin because it is generally
+        # more stable for automated navigation than the 'HEADER' origin.
+        params["origin"] = "GLOBAL_SEARCH_CARD"
+        
+        base_url = "https://www.linkedin.com/search/results/people/"
+        # urlencode is fast, but we keep it in an async wrapper for architectural consistency
+        query_string = urllib.parse.urlencode(params)
+        return f"{base_url}?{query_string}"
+
+    async def _build_job_title_search_url(self, job_title: str, location: str) -> str:
         """Build LinkedIn search URL for job title and location."""
-        # URL encode the search parameters
-        encoded_title = job_title.replace(' ', '%20').replace('&', '%26')
-        encoded_location = location.replace(' ', '%20')
-        
-        return (
-            f"https://www.linkedin.com/search/results/people/"
-            f"?keywords={encoded_title}&location={encoded_location}"
-            f"&origin=GLOBAL_SEARCH_HEADER&sid=Z%2Cv"
-        )
-    
-    def _build_keyword_search_url(self, keyword: str, location: str) -> str:
+        return await self._generate_url({
+            "keywords": job_title,
+            "location": location
+        })
+
+    async def _build_keyword_search_url(self, keyword: str, location: str) -> str:
         """Build LinkedIn search URL for keyword and location."""
-        # URL encode the search parameters
-        encoded_keyword = keyword.replace(' ', '%20').replace('&', '%26')
-        encoded_location = location.replace(' ', '%20')
-        
-        return (
-            f"https://www.linkedin.com/search/results/people/"
-            f"?keywords={encoded_keyword}&location={encoded_location}"
-            f"&origin=GLOBAL_SEARCH_HEADER&sid=Z%2Cv"
-        )
-    
-    def _build_company_search_url(self, company: str, job_title: str) -> str:
+        return await self._generate_url({
+            "keywords": keyword,
+            "location": location
+        })
+
+    async def _build_company_search_url(self, company: str, job_title: str) -> str:
         """Build LinkedIn search URL for company and job title."""
-        # URL encode the search parameters
-        encoded_company = company.replace(' ', '%20').replace('&', '%26')
-        encoded_title = job_title.replace(' ', '%20').replace('&', '%26')
-        
-        return (
-            f"https://www.linkedin.com/search/results/people/"
-            f"?company={encoded_company}&keywords={encoded_title}"
-            f"&origin=GLOBAL_SEARCH_HEADER&sid=Z%2Cv"
-        )
+        return await self._generate_url({
+            "company": company,
+            "keywords": job_title
+        })
     
     async def _extract_profiles_from_search_results(self) -> List[Dict[str, str]]:
         """Extract profile information from LinkedIn search results."""

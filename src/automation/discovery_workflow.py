@@ -94,9 +94,35 @@ class DiscoveryWorkflow:
         # Initialize prospect discoverer
         self.prospect_discoverer = ProspectDiscoverer(self.page)
         
-        # Setup LinkedIn session
+        # Setup LinkedIn session with authentication verification
         cookies = await self.session_manager.load_cookies_from_json()
         await self.context.add_cookies(cookies)
+        
+        # Check if cookies need refresh
+        if self.session_manager.check_cookie_refresh_needed():
+            logger.warning("Cookies may need to be refreshed")
+            logger.info(self.session_manager.get_refresh_guidance())
+        
+        # Verify authentication with retry
+        auth_attempts = 0
+        max_auth_attempts = 3
+        authenticated = False
+        
+        while auth_attempts < max_auth_attempts and not authenticated:
+            auth_attempts += 1
+            logger.info(f"Authentication attempt {auth_attempts}/{max_auth_attempts}")
+            
+            if await self.session_manager.verify_authentication(self.context):
+                authenticated = True
+                logger.info("LinkedIn authentication successful")
+            else:
+                if auth_attempts < max_auth_attempts:
+                    logger.warning(f"Authentication attempt {auth_attempts} failed, retrying...")
+                    await asyncio.sleep(2)
+                else:
+                    logger.error("All authentication attempts failed")
+                    raise Exception("LinkedIn authentication failed - cookies may be invalid or expired")
+        
         console.print("Browser and session setup completed")
     
     async def _run_discovery_phase(self, max_prospects: int) -> Dict[str, Any]:
